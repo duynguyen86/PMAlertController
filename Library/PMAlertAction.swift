@@ -34,7 +34,7 @@ import UIKit
         self.addTarget(self, action: #selector(PMAlertAction.tapped(_:)), for: .touchUpInside)
         
         self.setTitle(title, for: UIControl.State())
-        self.titleLabel?.font = UIFont(name: "Avenir-Heavy", size: 17)
+        self.titleLabel?.font = UIFont(name: "ChalkboardSE-Bold", size: 17)
         
         self.actionStyle = style
         style == .default ? (self.setTitleColor(UIColor(red: 191.0/255.0, green: 51.0/255.0, blue: 98.0/255.0, alpha: 1.0), for: UIControl.State())) : (self.setTitleColor(UIColor.gray, for: UIControl.State()))

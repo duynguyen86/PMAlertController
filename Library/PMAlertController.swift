@@ -23,8 +23,16 @@ import UIKit
     @IBOutlet weak open var headerViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak open var headerViewTopSpaceConstraint: NSLayoutConstraint!
     @IBOutlet weak open var alertImage: UIImageView!
-    @IBOutlet weak open var alertTitle: UILabel!
-    @IBOutlet weak open var alertDescription: UILabel!
+    @IBOutlet weak open var alertTitle: UILabel! {
+        didSet {
+            alertTitle.font = UIFont.init(name: "ChalkboardSE-Bold", size: 17)
+        }
+    }
+    @IBOutlet weak open var alertDescription: UILabel!{
+        didSet {
+            alertDescription.font = UIFont.init(name: "ChalkboardSE-Bold", size: 17)
+        }
+    }
     @IBOutlet weak open var alertContentStackViewLeadingConstraint: NSLayoutConstraint!
     @IBOutlet weak open var alertContentStackViewTrailingConstraint: NSLayoutConstraint!
     @IBOutlet weak open var alertContentStackViewTopConstraint: NSLayoutConstraint!
@@ -41,7 +49,7 @@ import UIKit
     open var textFields: [UITextField] = []
     
     @objc open var gravityDismissAnimation = true
-    @objc open var dismissWithBackgroudTouch = false // enable touch background to dismiss. Off by default.
+    @objc open var dismissWithBackgroudTouch = true // enable touch background to dismiss. Off by default.
     
     //MARK: - Lifecycle
     
@@ -87,7 +95,7 @@ import UIKit
     @objc open func addAction(_ alertAction: PMAlertAction){
         alertActionStackView.addArrangedSubview(alertAction)
         
-        if alertActionStackView.arrangedSubviews.count > 2 || hasTextFieldAdded(){
+        if alertActionStackView.arrangedSubviews.count > 2 || hasTextFieldAdded() {
             alertActionStackViewHeightConstraint.constant = ALERT_STACK_VIEW_HEIGHT * CGFloat(alertActionStackView.arrangedSubviews.count)
             alertActionStackView.axis = .vertical
         }
@@ -99,26 +107,27 @@ import UIKit
         alertAction.addTarget(self, action: #selector(PMAlertController.dismissAlertController(_:)), for: .touchUpInside)
     }
     
+    private func dismissVC() {
+        let transition = CATransition().fadeTransition()
+        self.view.window?.layer.add(transition, forKey: kCATransition)
+        self.dismiss(animated: false, completion: nil)
+    }
+    
     @objc fileprivate func dismissAlertController(_ sender: PMAlertAction){
         self.animateDismissWithGravity(sender.actionStyle)
-        self.dismiss(animated: true, completion: nil)
+        //        self.dismiss(animated: true, completion: nil)
     }
     
     @objc fileprivate func dismissAlertControllerFromBackgroundTap() {
-        if !dismissWithBackgroudTouch {
-            return
-        }
-        
-        self.animateDismissWithGravity(.cancel)
-        self.dismiss(animated: true, completion: nil)
+        self.dismissVC()
     }
-
+    
     //MARK: - Text Fields
     @objc open func addTextField(textField:UITextField? = nil, _ configuration: (_ textField: UITextField?) -> Void){
         let textField = textField ?? UITextField()
         textField.delegate = self
         textField.returnKeyType = .done
-        textField.font = UIFont(name: "Avenir-Heavy", size: 17)
+        textField.font = UIFont(name: "ChalkboardSE-Bold", size: 17)
         textField.textAlignment = .center
         configuration (textField)
         _addTextField(textField)
@@ -139,7 +148,7 @@ import UIKit
         alertView.layer.masksToBounds = false
         alertView.layer.shadowOffset = CGSize(width: 0, height: 0)
         alertView.layer.shadowRadius = 8
-        alertView.layer.shadowOpacity = 0.3
+        alertView.layer.shadowOpacity = 0.7
     }
     
     @objc fileprivate func loadNibAlertController() -> [AnyObject]?{
@@ -165,25 +174,27 @@ import UIKit
     }
     
     //MARK: - Animations
-    
     @objc fileprivate func animateDismissWithGravity(_ style: PMAlertActionStyle){
-        if gravityDismissAnimation == true{
-            var radian = Double.pi
-            if style == .default {
-                radian = 2 * Double.pi
-            }else{
-                radian = -2 * Double.pi
-            }
-            animator = UIDynamicAnimator(referenceView: self.view)
-            
-            let gravityBehavior = UIGravityBehavior(items: [alertView])
-            gravityBehavior.gravityDirection = CGVector(dx: 0, dy: 10)
-            
-            animator?.addBehavior(gravityBehavior)
-            
-            let itemBehavior = UIDynamicItemBehavior(items: [alertView])
-            itemBehavior.addAngularVelocity(CGFloat(radian), for: alertView)
-            animator?.addBehavior(itemBehavior)
+        if gravityDismissAnimation == true {
+            //            var radian = Double.pi
+            //            if style == .default {
+            //                radian = 2 * Double.pi
+            //            }else{
+            //                radian = -2 * Double.pi
+            //            }
+            //            animator = UIDynamicAnimator(referenceView: self.view)
+            //
+            //            let gravityBehavior = UIGravityBehavior(items: [alertView])
+            //            gravityBehavior.gravityDirection = CGVector(dx: 0, dy: 10)
+            //
+            //            animator?.addBehavior(gravityBehavior)
+            //
+            //            let itemBehavior = UIDynamicItemBehavior(items: [alertView])
+            //            itemBehavior.addAngularVelocity(CGFloat(radian), for: alertView)
+            //            animator?.addBehavior(itemBehavior)
+            self.dismiss(animated: true, completion: nil)
+        } else {
+            self.dismissVC()
         }
     }
     
@@ -226,5 +237,16 @@ extension PMAlertController: UITextFieldDelegate {
         textField.resignFirstResponder()
         
         return true
+    }
+}
+
+extension CATransition {
+    func fadeTransition() -> CATransition {
+        let transition = CATransition()
+        transition.duration = 0.3
+        transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        transition.type = CATransitionType.fade
+        transition.subtype = CATransitionSubtype.fromRight
+        return transition
     }
 }
